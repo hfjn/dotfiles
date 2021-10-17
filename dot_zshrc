@@ -1,0 +1,261 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+if [ -n "$DESKTOP_SESSION" ];then
+    eval $(gnome-keyring-daemon --start)
+    export SSH_AUTH_SOCK
+fi
+
+###############
+# BASIC SETUP #
+###############
+alias ssh='TERM=xterm-256color ssh'
+
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+setopt NO_CASE_GLOB
+setopt AUTO_CD
+setopt EXTENDED_HISTORY
+# share history across multiple zsh sessions
+setopt SHARE_HISTORY
+# append to history
+setopt APPEND_HISTORY
+# adds commands as they are typed, not at shell exit
+setopt INC_APPEND_HISTORY
+# expire duplicates first
+setopt HIST_EXPIRE_DUPS_FIRST 
+# do not store duplications
+setopt HIST_IGNORE_DUPS
+#ignore duplicates when searching
+setopt HIST_FIND_NO_DUPS
+# removes blank lines from history
+setopt HIST_REDUCE_BLANKS
+unsetopt CORRECT
+unsetopt CORRECT_ALL
+unsetopt COMPLETE_ALIASES
+
+SAVEHIST=5000
+HISTSIZE=2000
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+
+
+zstyle ':completion:*' completer _expand _complete _ignored _approximate
+zstyle ':completion:*' matcher-list '' '' 'm:{[:lower:]}={[:upper:]} m:{[:lower:][:upper:]}={[:upper:][:lower:]} r:|[._-]=** r:|=** l:|=*'
+zstyle ':completion:*' menu select=2
+zstyle ':completion:*' menu select=interactive
+zstyle :compinstall filename '$HOME/.zshrc'
+
+bindkey -e
+unsetopt nomatch # escape string fixing zsh: no matches found error
+autoload -Uz compinit; compinit
+
+# NAVIGATION
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# \e[A arrow up
+# \e[B arrow down
+# \e[C arrow right
+# \e[D arrow left
+bindkey "\e[A" up-line-or-beginning-search
+bindkey "\e[B" down-line-or-beginning-search
+
+# \e[1;5A Ctrl + arrow up
+# \e[1;5B Ctrl + arrow down
+# \e[1;5C Ctrl + arrow right
+# \e[1;5D Ctrl + arrow left
+# should be binded after zsh-users/zsh-history-substring-search loading
+bindkey "\e[1;5A" history-substring-search-up
+bindkey "\e[1;5B" history-substring-search-down
+bindkey "\e[1;5C" forward-word
+bindkey "\e[1;5D" backward-word
+
+# \e[1;2A Shift + arrow up
+# \e[1;2B Shift + arrow down
+# \e[1;2C Shift + arrow right
+# \e[1;2D Shift + arrow left
+bindkey "\e[1;2A" history-incremental-search-forward
+bindkey "\e[1;2B" history-incremental-search-backward # Ctrl+r
+
+# fix of delete key
+bindkey "\e[3~" delete-char
+bindkey "\e[3;5~" delete-word
+# fix for separating text on slashes
+export WORDCHARS='*?[]~&;!#$%^(){}<>'
+
+# ##########
+# # PROMPT #
+# ##########
+
+
+# ALIASES
+alias less="less --LONG-PROMPT --no-init --quit-at-eof --quit-if-one-screen --quit-on-intr"
+export PAGER='less -SRXF'
+
+alias arch='uname -m'
+alias ll='ls -ahlF --time-style=long-iso --group-directories-first'
+alias la='ls -A'
+alias compress_jpeg="find ./ -iname '*.jpg' -type f -size +100k -exec jpeg-recompress --quality high --method ssim --accurate --min 70 {} {} \;"
+alias -g G='|grep'
+alias -g L='|less'
+
+alias wifi_up="nmcli device connect wlan0"
+alias wifi_down="nmcli device disconnect wlan0"
+
+# CUSTOM FUNCTIONS
+command_exists () {
+  (( $+commands[$1] ))
+}
+
+# SUDO
+SUDO=''
+if [[ $EUID -ne 0 ]] && command_exists sudo ; then
+  SUDO='sudo'
+fi
+# END SUDO
+
+alias lock="betterlockscreen -l blur -t 'Arbeit, Arbeit.' > /dev/null"
+alias suspend="betterlockscreen -s blur -t 'Arbeit, Arbeit.' > /dev/null"
+
+
+## ARCHIVES
+extract () {
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)        tar xjf $1        ;;
+      *.tar.gz)         tar xzf $1        ;;
+      *.bz2)            bunzip2 $1        ;;
+      *.rar)            unrar x $1        ;;
+      *.gz)             gunzip $1         ;;
+      *.tar)            tar xf $1         ;;
+      *.tbz2)           tar xjf $1        ;;
+      *.tgz)            tar xzf $1        ;;
+      *.zip)            unzip $1          ;;
+      *.Z)              uncompress $1     ;;
+      *.7z)             7zr e $1          ;;
+      *)                echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+zipin () {
+  for f in $(ls -A);
+    do
+    if [ -f "$f" ]; then
+      case $f in
+        *.zip)       echo "$f already zipped"  ;;
+        *)           zip -9 $f.zip $f && rm $f ;;
+      esac
+    fi;
+  done
+}
+## END ARCHIVES
+
+if command_exists kubectl ; then
+  alias k='kubectl'
+  alias kapr='kubectl api-resources'
+  compdef k='kubectl'
+  if command_exists kubectx ; then
+    alias kctx='kubectx'
+    compdef kctx='kubectx'
+  fi
+  if command_exists kubens ; then
+    alias kns='kubens'
+    compdef kns='kubens'
+  fi
+fi
+
+
+if command_exists go ; then
+  export GOPATH=$HOME/go
+  export PATH=$PATH:$GOPATH/bin
+  if [ -d $GOPATH/goprojects ]; then
+    export GOPATH=$GOPATH:$GOPATH/goprojects
+  fi
+fi
+## END GO
+
+# PROMPT
+parse_git_branch(){
+  git branch 2> /dev/null | sed -n 's/^\* //p'
+}
+
+## PYTHON
+virtual='virtualenvwrapper.sh'
+if command_exists $virtual; then
+  export VIRTUAL_ENV_DISABLE_PROMPT=1
+  export WORKON_HOME=~/.virtualenvs/
+  export AUTOSWITCH_SILENT=1
+  source $virtual
+fi
+
+clean_pyc (){
+  find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+}
+### Determine active Python virtualenv details.
+set_virtualenv () {
+  if [ ! -z "$VIRTUAL_ENV" ] ; then
+    echo " %F{yellow}[`basename \"$VIRTUAL_ENV\"`]"
+  fi
+}
+## END PYTHON
+
+function check_last_exit_code() {
+  local LAST_EXIT_CODE=$?
+  local SYMBOL=$1
+  if [[ $LAST_EXIT_CODE -ne 0 ]]; then
+    echo "%{$FG[196]%}-${LAST_EXIT_CODE}-%{$FX[reset]%}"
+  else
+    echo "$SYMBOL"
+  fi
+}
+
+# User configuration
+##########
+# CUSTOM #
+##########
+
+# Load Plugins
+source $HOME/src/3rd/zsh-z/zsh-z.plugin.zsh
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Fix for ansible >2.4
+export GO_BIN=$HOME/go/bin
+export GOPATH=$HOME/go
+export POETRY_BIN=$HOME/.poetry/bin
+export SED_BIN=/usr/local/opt/gnu-sed/libexec/gnubin
+
+export PATH="$POETRY_BIN:$SED_BIN:$GNU_BIN:$FIND_BIN:$GO_BIN:$HOME/bin:/usr/local/bin:/usr/local/opt/openssl/bin:$HOME/.local/bin:$PATH"
+
+
+# Load asdf
+export ASDF_DIR=/opt/asdf-vm
+export HOST=$(HOSTNAME)
+
+# export Languages=
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+
+. /opt/asdf-vm/asdf.sh
+
+# export editor=export VISUAL=/usr/local/bin/nvim
+export EDITOR=$VISUAL
+
+# export blocksize=for ls and such
+export BLOCKSIZE=1k
+
+
+alias vi='nvim'
+alias vim='nvim'
+alias stop_all_docker='docker stop $(docker ps -a -q)'
+alias rm_all_docker='docker rm $(docker ps -a -q)'
+
+export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
+
+eval "$(starship init zsh)"
+source ~/.zshrc.local
