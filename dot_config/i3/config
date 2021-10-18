@@ -112,13 +112,13 @@ bindsym XF86AudioPrev exec playerctl --player=spotify previous
 
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
-set $ws1 "1:Terminals"
-set $ws2 "2:Editors"
-set $ws3 "3:Browser"
-set $ws4 "4:Notes"
-set $ws5 "5:Social"
-set $ws6 "6:Music"
-set $ws7 "7:Photos"
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
 set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
@@ -128,12 +128,12 @@ workspace $ws1 output HDMI-A-0 DisplayPort-0
 workspace $ws2 output HDMI-A-0 DisplayPort-0
 workspace $ws3 output HDMI-A-0 DisplayPort-0
 workspace $ws4 output HDMI-A-0 DisplayPort-0
-workspace $ws5 output eDP
-workspace $ws6 output eDP
-workspace $ws7 output eDP
-workspace $ws8 output eDP
-workspace $ws9 output eDP
-workspace $ws10 output eDP
+workspace $ws5 output eDP DisplayPort-0
+workspace $ws6 output eDP DisplayPort-0
+workspace $ws7 output eDP DisplayPort-0
+workspace $ws8 output eDP DisplayPort-0
+workspace $ws9 output eDP DisplayPort-0
+workspace $ws10 output eDP DisplayPort-0
 
 # switch to workspace
 bindsym $mod+1 workspace $ws1
@@ -222,8 +222,9 @@ set $base0F #fcc09e
 # You can use these variables anywhere in the i3 configuration file.
 
 bar {
-  # status_command i3blocks
-  status_command bumblebee-status -m network_traffic ping vpn cpu memory battery arch-update pasink pasource datetime -t solarized-powerline -p ping.address=1.1.1.1 -p ping.interval=10 p root.path=/ datetime.format="%Y-%m-%d %H:%M:%S"
+    font pango:Jetbrains Mono, FontAwesome 10
+    position top
+    status_command /bin/i3status-rs ~/.config/i3/i3status-rs.toml
 }
 
 # Window color settings

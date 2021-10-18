@@ -1,0 +1,58 @@
+theme = "native"
+icons = "awesome5"
+ 
+[[block]]
+block = "custom"
+json = true
+command = ''' echo "{\"icon\":\"ping\",\"text\":\"`ping -c4 1.1.1.1 | tail -n1 | cut -d'/' -f5`\"}" '''
+interval = 60
+on_click = "<command>"
+
+
+[[block]]
+block = "music"
+max_width = 21
+marquee = false
+player = "spotify"
+buttons = ["play", "next"]
+
+[[block]]
+block = "temperature"
+collapsed = false
+interval = 10
+format = "{min}{max}{average}"
+ 
+ 
+[[block]]
+block = "load"
+interval = 1
+format = "{1m} {5m} {15m}"
+ 
+[[block]]
+block = "cpu"
+interval = 0.7
+ 
+[[block]]
+block = "memory"
+interval = 5
+display_type = "memory"
+format_mem = "{mem_total_used_percents}%"
+format_swap = "{swap_used_percents}%"
+ 
+#[[block]]
+#block = "battery"
+#device = 0
+ 
+[[block]]
+block = "sound"
+ 
+[[block]]
+block = "time"
+interval = 60
+format = "%a %d-%m-%Y %R"
+ 
+#[[block]]
+#block = "custom"
+#interval = 999999
+#command = "echo '\uF011'"
+#on_click = "i3-nagbar -t warning -m 'What do you want to do?' -b 'Shutdown' 'shutdown now' -b 'Hibernate' 'systemctl hibernate' -b 'Reboot' 'reboot'"
